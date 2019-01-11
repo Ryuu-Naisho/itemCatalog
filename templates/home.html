@@ -1,3 +1,14 @@
 {% include 'components/header.html' %}
-
+	<div class='row'>
+		<div class='col-xs-6 col-md-4'>
+			{% with categories = categories%}
+				{% include 'components/categoryComponent.html' %}
+			{% endwith %}
+		</div>
+		<div class='col-xs-6 col-md-4'>
+			{% with items = items %}
+				{% include 'components/itemComponent.html' %}
+			{% endwith %}
+		</div>
+	</div>
 {% include 'components/footer.html' %}
