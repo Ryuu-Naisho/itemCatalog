@@ -17,10 +17,11 @@ class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key = True)
     username = Column(String(32))
+    email = Column(String)
     picture = Column(String)
-    pasword_has = Column(String(64))
+    pasword_hash = Column(String(64))
     
-    def has_password(self, password):      
+    def hash_password(self, password):      
         self.password_hash = pwd_context.encrypt(password)
         
     def verify_password(self, password):
