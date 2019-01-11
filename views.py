@@ -16,6 +16,7 @@ from flask.wrappers import Response
 from werkzeug.utils import redirect
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
+
 engine = create_engine('sqlite:///itemCatalog.db')
 
 Base.metadata.bind = engine
@@ -155,7 +156,28 @@ def home():
     items = session.query(Item).all()
     category = session.query(Category).all()
     #TODO return to home.html with item and catalog variables
-    return render_template('home.html')
+    return render_template('home.html', category = category, items = items)
+
+@app.route('/categories')
+def getCategories():
+    ''' Returns the category template. Requires user to be logged in. '''
+    
+    if 'username' not in login_session:
+        return redirect('/login')
+    
+    categories = session.query(Item).all()
+    return render_template('categories.html',categories = categories)
+
+@app.route('/items/<int:category_id>')
+def getItems():
+    ''' Returns the items template. Requires user to be logged in. '''
+    
+    items = session.query(Item).filter_by(category_id = category_id).all()
+    category = session.query(Category).filter_by(category_id = category_id).once()
+    
+    return render_template('items.html', items = items, category = category)
+
+#@TODO Add Edit, Create, and delete function to  items and category
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
