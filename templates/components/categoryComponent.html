@@ -1,0 +1,12 @@
+<table class="table table-hover">
+	<tbody>
+		<th><h1>Category</h1></th>
+			{% for category in categories %}
+				<tr>
+					<td>
+						<h2>{{category.name}}</h2>
+					</td>
+				</tr>
+			{% endfor %}
+	</tbody>
+</table>
