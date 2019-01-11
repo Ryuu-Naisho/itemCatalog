@@ -156,7 +156,7 @@ def home():
     items = session.query(Item).all()
     category = session.query(Category).all()
     #TODO return to home.html with item and catalog variables
-    return render_template('home.html', category = category, items = items)
+    return render_template('home.html', categories = category, items = items)
 
 @app.route('/categories')
 def getCategories():
