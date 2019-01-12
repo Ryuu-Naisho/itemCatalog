@@ -17,7 +17,7 @@ from werkzeug.utils import redirect
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
-engine = create_engine('sqlite:///itemCatalog.db')
+engine = create_engine('sqlite:///itemCatalog.db', connect_args={'check_same_thread':False})
 
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
@@ -158,15 +158,18 @@ def home():
     #TODO return to home.html with item and catalog variables
     return render_template('home.html', categories = category, items = items)
 
-@app.route('/categories')
-def getCategories():
-    ''' Returns the category template. Requires user to be logged in. '''
+@app.route('/categories/<string:category_name>')
+def getCategory(category_name):
+    ''' Returns the category template and displays items that belong to the category. Requires user to be logged in. '''
+       
+    category = session.query(Category).filter_by(name = category_name).first()
+    items = session.query(Item).filter_by(category_id = category.id).all()
     
-    if 'username' not in login_session:
-        return redirect('/login')
-    
-    categories = session.query(Item).all()
-    return render_template('categories.html',categories = categories)
+    ''' Redirect traffic for users and non-users '''
+    if 'username' in login_session:
+        return render_template('user_categories.html', category_name = category_name, items = items)
+    else:
+        return render_template('categories.html', category_name = category_name, items = items)
 
 @app.route('/items/<int:category_id>')
 def getItems():
