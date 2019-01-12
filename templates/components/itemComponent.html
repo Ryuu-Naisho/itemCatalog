@@ -5,7 +5,9 @@
 			{% for item in items %}
 				<tr>
 					<th>
-						<p class="bg-primary">{{item.name}}</p>
+						<a href="{{url_for('getItem', item_name = item.name, category_id = category_id)}}">
+							<p class="bg-primary">{{item.name}}</p>
+						</a>
 					</th>
 					<td>
 						<p class="bg-info">{{item.description}}</p>
