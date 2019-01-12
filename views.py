@@ -125,8 +125,7 @@ def gdisconnect():
     
     url = 'https://accounts.google.com/o/oauth2/revoke?token={}'.format(login_session['access_token'])
     http_get = httplib2.Http()
-    response = http_get(url,'GET')[0]
-    
+    response = http_get.request(url,'GET')[0]
     ''' Remove session tokens. '''
     if response['status'] == '200':
         del login_session['access_token']
@@ -137,7 +136,7 @@ def gdisconnect():
         response = make_response(
             json.dumps('Successfully disconnected.'), 200)
         response.headers['Content-Type'] = 'application/json'
-        return Response
+        return redirect('/')
     else:
         response = make_response(
             json.dumps('Failed to revoke token.'), 400)
@@ -149,10 +148,6 @@ def gdisconnect():
 def home():
     ''' Returns to home template. Requires user to be logged in. '''
     
-    ''' Restrict access to users not logged in. '''
-    if 'username' not in login_session:
-        return redirect('/login')
-    
     items = session.query(Item).all()
     category = session.query(Category).all()
     #TODO return to home.html with item and catalog variables
@@ -160,26 +155,94 @@ def home():
 
 @app.route('/categories/<string:category_name>')
 def getCategory(category_name):
-    ''' Returns the category template and displays items that belong to the category. Requires user to be logged in. '''
+    ''' Returns the category template and displays items that belong to the category. '''
        
     category = session.query(Category).filter_by(name = category_name).first()
     items = session.query(Item).filter_by(category_id = category.id).all()
     
     ''' Redirect traffic for users and non-users '''
     if 'username' in login_session:
-        return render_template('user_categories.html', category_name = category_name, items = items)
+        return render_template('user_category.html', category_name = category_name, items = items)
     else:
-        return render_template('categories.html', category_name = category_name, items = items)
+        return render_template('category.html', category_name = category_name, items = items)
 
-@app.route('/items/<int:category_id>')
-def getItems():
-    ''' Returns the items template. Requires user to be logged in. '''
+@app.route('/categories/<string:category_name>/edit')
+def editCategory(category_name):
+    ''' Edit Category, user must be owner. '''
     
-    items = session.query(Item).filter_by(category_id = category_id).all()
-    category = session.query(Category).filter_by(category_id = category_id).once()
+    ''' Restrict access to users not logged in. '''
+    if 'username' not in login_session:
+        return redirect('/login')
+    return category_name
+@app.route('/categories/<string:category_name>/delete')
+def deleteCategory(category_name):
+    ''' Delete Category, user must be owner. '''
     
-    return render_template('items.html', items = items, category = category)
+    ''' Restrict access to users not logged in. '''
+    if 'username' not in login_session:
+        return redirect('/login')
+    
+    return category_name
 
+@app.route('/items/<string:item_name>')
+def getItem(item_name):
+    ''' Returns the item template and displays item and description. '''
+    
+    ''' Clean up item_name. '''
+    name = item_name.replace('%','')
+    item = session.query(Item).filter_by(name = name).first()
+    category = session.query(Category).filter_by(id = item.category_id).first()
+    
+    ''' Redirect traffic for users and non-users '''
+    if 'username' in login_session:
+        return render_template('user_item.html', item = item, category_name = category.name)
+    else:
+        return render_template('item.html', item = item, category_name = category.name)
+@app.route('/items/<string:item_name>/edit')
+def editItem(item_name):
+    ''' Edit items, user must be owner. '''
+    
+    ''' Restrict access to users not logged in. '''
+    if 'username' not in login_session:
+        return redirect('/login')
+    ''' Restrict access to users not logged in. '''
+    if 'username' not in login_session:
+        return redirect('/login')
+    
+    return item_name
+
+@app.route('/items/<string:item_name>/delete')
+def deleteItem(item_name):
+    ''' Delete Items, user must be owner. '''
+    
+    ''' Restrict access to users not logged in. '''
+    if 'username' not in login_session:
+        return redirect('/login')
+    
+    return item_name
+
+@app.route('/logout')
+def logout():
+    ''' Logs a user out. '''
+    
+    if 'username' not in login_session:
+        return redirect('/login')
+    
+    if 'gplus_id' in login_session:
+        return gdisconnect()
+
+def isOwner(entryUserID):
+    ''' Checks if the logged-in user is owner of an entry. '''
+    try:
+        loggedInUserID = session.query(User).filter_by(email = login_session['email']).first()
+        
+        if loggedInUserID is entryUserID:
+            return true
+        else:
+            return false
+    except : 
+        return 'No user is logged in'
+    
 #@TODO Add Edit, Create, and delete function to  items and category
 
 if __name__ == '__main__':
