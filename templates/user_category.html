@@ -1,9 +1,13 @@
 {% include 'components/header.html' %}
-	<button type="button" class="btn btn-primary">
-		<a href="/">
-		Back
-		</a>
-	</button>
+	<a href="/">
+		<button type="button" class="btn btn-primary">Back</button>
+	</a>
+	<a href="{{url_for('editCategory', category_name = category_name)}}">
+		<button type="button" class="btn btn-primary">Edit Category</button>
+	</a>
+	<a href="{{url_for('deleteCategory', category_name = category_name)}}">
+		<button type="button" class="btn btn-primary">Delete Category</button>
+	</a>
 	<h1>{{category_name}}</h1>
 		<div class='col-xs-6 col-md-4'>
 			{% with items = items %}

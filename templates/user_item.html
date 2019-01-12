@@ -1,3 +1,18 @@
 {% include 'components/header.html' %}
-
+<a href="/">
+	<button type="button" class="btn btn-primary">Back</button>
+</a>
+<br/>
+	<div class="well well-sm" >
+		<div class="panel panel-default">
+	  		<div class="panel-heading">{{item.name}}</div>
+	  		<div class="panel-body">{{item.description}}</div>
+		</div>
+			<a href="{{url_for('editItem', item_name = item.name)}}">
+				<button type="button" class="btn btn-primary">Edit</button>
+			</a>
+		<a href="{{url_for('deleteItem', item_name = item.name)}}">
+			<button type="button" class="btn btn-primary">Delete</button>
+		</a>
+	</div>
 {% include 'components/footer.html' %}
