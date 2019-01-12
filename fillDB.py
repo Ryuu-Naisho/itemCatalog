@@ -25,7 +25,6 @@ def createCategories():
     categories = ['sport','outdoor','art']
     
     for category in categories:
-        '''@TODO make sure category displays a name and not a number...'''
         session.add(Category(name = category))
         session.commit()
 
@@ -35,8 +34,8 @@ def createItems():
     items = ['Soccer ball', 'Fishing pole', 'Paint brush']
     descriptions = ['Ball for playing soccer.', 'Pole for fishing.','Brush for painting.']
     
-    for i in range(len(items)):
-        session.add(Item(name = items[i], description = descriptions[i], category_id = i, user_id = i))
+    for i in range(1,len(items)):
+        session.add(Item(name = items[i], description = descriptions[i], category_id = i+1, user_id = i+1))
         session.commit()
 
 if __name__ == '__main__':
