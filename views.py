@@ -190,9 +190,8 @@ def getItem(item_name):
     
     item = session.query(Item).filter_by(name = item_name).first()
     category = session.query(Category).filter_by(id = item.category_id).first()
-    
     ''' Redirect traffic for users and non-users '''
-    if 'username' in login_session:
+    if 'username' in login_session and isOwner(item.user_id):
         return render_template('user_item.html', item = item, category_name = category.name, user = getUser())
     else:
         return render_template('item.html', item = item, category_name = category.name, user = False)
@@ -200,11 +199,15 @@ def getItem(item_name):
 def editItem(item_name):
     ''' Edit items, user must be owner. '''
     
+    item = session.query(Item).filter_by(name = item_name).first()
+    
     ''' Restrict access to users not logged in. '''
     if 'username' not in login_session:
         return redirect('/login')
     
-    item = session.query(Item).filter_by(name = item_name).first()
+    ''' Restrict access to logged users whom items not belong. '''
+    if not isOwner(item.user_id):
+        return redirect('/')
     
     if request.method == 'POST':
         
@@ -232,11 +235,15 @@ def editItem(item_name):
 def deleteItem(item_name):
     ''' Delete Items, user must be owner. '''
     
+    item = session.query(Item).filter_by(name = item_name).first()
+    
     ''' Restrict access to users not logged in. '''
     if 'username' not in login_session:
         return redirect('/login')
     
-    item = session.query(Item).filter_by(name = item_name).first()
+        ''' Restrict access to logged users whom items not belong. '''
+    if not isOwner(item.user_id):
+        return redirect('/')
     
     if request.method  == 'POST':
         session.delete(item)
@@ -275,11 +282,11 @@ def isOwner(entryUserID):
         loggedInUserID = session.query(User).filter_by(email = login_session['email']).first()
         
         if loggedInUserID is entryUserID:
-            return true
+            return True
         else:
-            return false
+            return False
     except : 
-        return 'No user is logged in'
+        return False
     
 #@TODO Add Edit, Create, and delete function to  items and category
 
