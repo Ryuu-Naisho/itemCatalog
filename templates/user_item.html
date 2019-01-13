@@ -7,7 +7,7 @@
 <br/>
 	<div class="well well-sm" >
 		<div class="panel panel-default">
-	  		<div class="panel-heading">{{item.name}}</div>
+	  		<div class="panel-heading">{{item.name}} &nbsp; <span class="badge">{{category_name}}</span></div>
 	  		<div class="panel-body">{{item.description}}</div>
 		</div>
 			<a href="{{url_for('editItem', item_name = item.name)}}">
