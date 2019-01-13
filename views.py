@@ -3,7 +3,7 @@
 #from redis import Redis
 #import time
 from functools import update_wrapper
-from flask import abort, Flask, flash, g, jsonify, make_response, render_template, request, url_for
+from flask import abort, Flask, flash, g, jsonify, make_response, render_template, request, url_for, g
 from flask import session as login_session
 from models import Base, Category, Item, User
 from sqlalchemy.ext.declarative import declarative_base
@@ -151,7 +151,7 @@ def home():
     items = session.query(Item).all()
     category = session.query(Category).all()
     #TODO return to home.html with item and catalog variables
-    return render_template('home.html', categories = category, items = items)
+    return render_template('home.html', categories = category, items = items, user = getUser())
 
 @app.route('/categories/<string:category_name>')
 def getCategory(category_name):
@@ -162,7 +162,7 @@ def getCategory(category_name):
     
     ''' Redirect traffic for users and non-users '''
     if 'username' in login_session:
-        return render_template('user_category.html', category_name = category_name, items = items)
+        return render_template('user_category.html', category_name = category_name, items = items, user = getUser())
     else:
         return render_template('category.html', category_name = category_name, items = items)
 
@@ -195,7 +195,7 @@ def getItem(item_name):
     
     ''' Redirect traffic for users and non-users '''
     if 'username' in login_session:
-        return render_template('user_item.html', item = item, category_name = category.name)
+        return render_template('user_item.html', item = item, category_name = category.name, user = getUser())
     else:
         return render_template('item.html', item = item, category_name = category.name)
 @app.route('/items/<string:item_name>/edit')
@@ -230,6 +230,19 @@ def logout():
     
     if 'gplus_id' in login_session:
         return gdisconnect()
+    
+def getUser():
+    ''' Return a user list : username and picture if exists. '''
+    
+    user = {'username' : '', 'picture' : ''}
+    
+    if 'username' not in login_session:
+        return False
+    
+    user['username'] = login_session['username']
+    user['picture'] = login_session['picture']
+    
+    return user
 
 def isOwner(entryUserID):
     ''' Checks if the logged-in user is owner of an entry. '''
