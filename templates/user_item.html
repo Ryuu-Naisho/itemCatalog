@@ -1,4 +1,6 @@
-{% include 'components/header.html' %}
+{% with user = user %}
+	{% include 'components/header.html' %}
+{% endwith %}
 <a href="/">
 	<button type="button" class="btn btn-primary">Back</button>
 </a>

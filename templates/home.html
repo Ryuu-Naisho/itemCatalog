@@ -1,4 +1,6 @@
-{% include 'components/header.html' %}
+{% with user = user %}
+	{% include 'components/header.html' %}
+{% endwith %}
 	<div class='row'>
 		<div class='col-xs-6 col-md-4'>
 			{% with categories = categories%}

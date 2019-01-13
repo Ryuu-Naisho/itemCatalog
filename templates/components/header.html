@@ -7,9 +7,20 @@
 </head>
 <body>
 <div class="panel panel-default">
-	<div class="panel-heading">
-		<a href="{{url_for('logout')}}">
-	<button type="button" class="btn btn-primary">Logout</button>
-	</a>
-	</div>
+	{% if user['username'] %}
+		<div class="panel-heading">
+			<p>{{user['username']}}</p>
+			<img src="{{user['picture']}}" alt="{{user['username']}}" width="70px" height="70xp"/>
+			<br />
+			<a href="{{url_for('logout')}}">
+				<button type="button" class="btn btn-primary">Logout</button>
+			</a>
+		</div>
+	{% else %}
+		<div class="panel-heading">
+			<a href="{{url_for('login')}}">
+				<button type="button" class="btn btn-primary">Login</button>
+			</a>
+		</div>
+	{% endif %}
   		<div class="panel-body">
