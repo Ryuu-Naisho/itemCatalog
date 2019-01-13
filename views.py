@@ -18,10 +18,10 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
 engine = create_engine('sqlite:///itemCatalog.db', connect_args={'check_same_thread':False})
-
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
 app = Flask(__name__)
 
 CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web']['client_id']
@@ -188,9 +188,7 @@ def deleteCategory(category_name):
 def getItem(item_name):
     ''' Returns the item template and displays item and description. '''
     
-    ''' Clean up item_name. '''
-    name = item_name.replace('%','')
-    item = session.query(Item).filter_by(name = name).first()
+    item = session.query(Item).filter_by(name = item_name).first()
     category = session.query(Category).filter_by(id = item.category_id).first()
     
     ''' Redirect traffic for users and non-users '''
@@ -198,7 +196,7 @@ def getItem(item_name):
         return render_template('user_item.html', item = item, category_name = category.name, user = getUser())
     else:
         return render_template('item.html', item = item, category_name = category.name, user = False)
-@app.route('/items/<string:item_name>/edit')
+@app.route('/items/<string:item_name>/edit', methods=['GET', 'POST'])
 def editItem(item_name):
     ''' Edit items, user must be owner. '''
     
@@ -206,9 +204,31 @@ def editItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
     
-    return item_name
+    item = session.query(Item).filter_by(name = item_name).first()
+    
+    if request.method == 'POST':
+        
+        formName = request.form['name']
+        formDescription = request.form['description']
+        formCategoryID = request.form['category']
+        
+        ''' Check which fields have been updated then update. '''
+        if formName is not item.name:
+            item.name = formName
+        if formDescription is not '':
+            item.description = formDescription
+        if formCategoryID is not item.category_id:
+            item.category_id = formCategoryID
+        session.commit()
+        flash('{} has been updated.'.format(formName))
+        
+        return redirect('/')
+    else:
+        thisCategory = session.query(Category).filter_by(id = item.category_id).first()
+        categories = session.query(Category).all()
+        return render_template('edit_item.html', item = item, category_name = thisCategory.name, categories = categories, user = getUser())
 
-@app.route('/items/<string:item_name>/delete')
+@app.route('/items/<string:item_name>/delete', methods=['GET','POST'])
 def deleteItem(item_name):
     ''' Delete Items, user must be owner. '''
     
@@ -216,7 +236,15 @@ def deleteItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
     
-    return item_name
+    item = session.query(Item).filter_by(name = item_name).first()
+    
+    if request.method  == 'POST':
+        session.delete(item)
+        session.commit()
+        flash('{} was deleted.'.format(item_name))
+        return redirect('/')
+    else:
+        return render_template('delete_item.html', item = item, user = getUser())
 
 @app.route('/logout')
 def logout():
