@@ -3,7 +3,7 @@
 #from redis import Redis
 #import time
 from functools import update_wrapper
-from flask import abort, Flask, flash, g, jsonify, make_response, render_template, request, url_for, g
+from flask import abort, Flask, flash, g, jsonify, make_response, render_template, request, url_for
 from flask import session as login_session
 from models import Base, Category, Item, User
 from sqlalchemy.ext.declarative import declarative_base
@@ -164,7 +164,7 @@ def getCategory(category_name):
     if 'username' in login_session:
         return render_template('user_category.html', category_name = category_name, items = items, user = getUser())
     else:
-        return render_template('category.html', category_name = category_name, items = items)
+        return render_template('category.html', category_name = category_name, items = items, user = False)
 
 @app.route('/categories/<string:category_name>/edit')
 def editCategory(category_name):
@@ -197,14 +197,11 @@ def getItem(item_name):
     if 'username' in login_session:
         return render_template('user_item.html', item = item, category_name = category.name, user = getUser())
     else:
-        return render_template('item.html', item = item, category_name = category.name)
+        return render_template('item.html', item = item, category_name = category.name, user = False)
 @app.route('/items/<string:item_name>/edit')
 def editItem(item_name):
     ''' Edit items, user must be owner. '''
     
-    ''' Restrict access to users not logged in. '''
-    if 'username' not in login_session:
-        return redirect('/login')
     ''' Restrict access to users not logged in. '''
     if 'username' not in login_session:
         return redirect('/login')
