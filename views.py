@@ -31,7 +31,7 @@ CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web']['client_i
 @app.route('/login')
 def login():
     ''' Returns the client html where to login through oAuth '''
-    
+
     ''' CSRF TOKEN '''
     state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in  range(32))
     login_session['state'] = state
@@ -105,6 +105,9 @@ def gconnect():
     incoming_response = requests.get(user_info_url, params = params)
     
     user_info = incoming_response.json()
+
+    if not userExists(user_info['email']):
+        createUser(user_info['name'], user_info['email'], user_info['picture'], login_session['access_token'])
     
     login_session['username'] = user_info['name']
     login_session['picture'] = user_info['picture']
@@ -112,7 +115,7 @@ def gconnect():
     
     flash('Welcome {}'.format(login_session['username']))
     return 'Success'
-
+    
 @app.route('/gdisconnect')
 def gdisconnect():
     access_token = login_session.get('access_token')
@@ -241,7 +244,7 @@ def deleteItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
     
-        ''' Restrict access to logged users whom items not belong. '''
+    ''' Restrict access to logged users whom items not belong. '''
     if not isOwner(item.user_id):
         return redirect('/')
     
@@ -252,6 +255,34 @@ def deleteItem(item_name):
         return redirect('/')
     else:
         return render_template('delete_item.html', item = item, user = getUser())
+
+@app.route('/items/<string:category_name>/new', methods=['GET'])
+@app.route('/items/new', methods=['GET','POST'])
+def createItem(category_name = None):
+    ''' Create a new item. Can optionally specify category. '''
+    
+    ''' Restrict access to users not logged in. '''
+    if 'username' not in login_session:
+        return redirect('/login')
+    
+    if request.method == 'POST':
+        item = Item(name = request.form['name'], description = request.form['description'], category_id = request.form['category_id'], user_id = getUserID(login_session['email']))
+        session.add(item)
+        session.commit
+        
+        return redirect('/items/{}'.format(request.form['name']))
+    else:
+        ''' Check if request came from a category page. i.e category_name should be the name of that category. '''
+        if category_name is not None:
+            category = session.query(Category).filter_by(name = category_name).first()
+            try:
+                if category.id:
+                    return render_template('create_item.html', category_name = category.name, categories = getCategories(), user = getUser())
+            except AttributeError:
+                category_name = None
+                return render_template('create_item.html', category_name = category_name, categories = getCategories(), user = getUser())
+        else:
+            return render_template('create_item.html', category_name = category_name, categories = getCategories(), user = getUser())
 
 @app.route('/logout')
 def logout():
@@ -266,15 +297,22 @@ def logout():
 def getUser():
     ''' Return a user list : username and picture if exists. '''
     
-    user = {'username' : '', 'picture' : ''}
+    user = {'username' : '', 'picture' : '', 'email' : ''}
     
     if 'username' not in login_session:
         return False
     
     user['username'] = login_session['username']
     user['picture'] = login_session['picture']
+    user['email'] = login_session['email']
     
     return user
+
+def getUserID(email):
+    ''' Return user id. '''
+    
+    user = session.query(User).filter_by(email = email).first()
+    return user.id
 
 def isOwner(entryUserID):
     ''' Checks if the logged-in user is owner of an entry. '''
@@ -287,8 +325,49 @@ def isOwner(entryUserID):
             return False
     except : 
         return False
+
+@app.route('/users')
+def showUser():
+    users = session.query(User).all()
+    output = ''
+    for user in users:
+        output += user.username
+        output += str(user.password_hash)
+        output += str(user.id)
+    return output
+
+def userExists(email):
+    ''' Query database and checks if user exists. '''
     
-#@TODO Add Edit, Create, and delete function to  items and category
+    user = session.query(User).filter_by(email = email).first()
+    id = 0
+    try:
+        id = user.id
+        return True
+    except AttributeError:
+        return False
+
+def createUser(username, email, picture, password):
+    ''' Creates a new user, if oAuth user, password will be the access toeken (to prevent empty passwords).'''
+    
+    user = User(username = username, email = email, picture = picture)
+    session.add(user)
+    session.commit()
+    
+    ''' Test user was created. '''
+    user = session.query(User).filter_by(email = email).first()
+    
+    if user.id:
+        user.password_hash(password)
+        print('success')
+    else:
+        print('Failed to create user')
+    
+def getCategories():
+    ''' Returns all categories. '''
+    
+    categories = session.query(Category).all()
+    return categories
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
