@@ -1,6 +1,9 @@
 {% with user = user %}
 	{% include 'components/header.html' %}
 {% endwith %}
+	<a href="{{url_for('createItem')}}">
+		<button type="button" class="btn btn-primary">Create Item</button>
+	</a>
 	<div class='row'>
 		<div class='col-xs-6 col-md-4'>
 			{% with categories = categories%}
