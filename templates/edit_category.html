@@ -1,0 +1,21 @@
+{% with user = user %}
+	{% include 'components/header.html' %}
+{% endwith %}
+<a href="/">
+	<button type="button" class="btn btn-primary">Back</button>
+</a>
+
+</br> &nbsp;
+	<div class="well well-sm" >
+		<div class="panel panel-default">
+		<h1>Edit {{category_name}}</h1>
+		</div>
+	</div>
+<form action="{{url_for('editCategory', category_name = category_name)}}" method="POST">
+		<div class="form-group">
+			<label>Name:</label>
+			<input name="name" type="text" placeholder="{{category_name}}" value="" required/>
+		</div>
+		<button type="Submit" class="btn btn-defalut">Edit</button>
+	</form>
+{% include 'components/footer.html' %}

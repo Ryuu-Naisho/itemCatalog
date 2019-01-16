@@ -169,13 +169,23 @@ def getCategory(category_name):
     else:
         return render_template('category.html', category_name = category_name, items = items, user = False)
 
-@app.route('/categories/<string:category_name>/edit')
+@app.route('/categories/<string:category_name>/edit', methods=['GET','POST'])
 def editCategory(category_name):
     ''' Edit Category, user must be owner. '''
+    category = session.query(Category).filter_by(name = category_name).first()
     
     ''' Restrict access to users not logged in. '''
     if 'username' not in login_session:
         return redirect('/login')
+    
+    if request.method == 'POST':
+        category.name = request.form['name']
+        session.commit()
+        flash('{} has been updated.'.format(request.form['name']))
+        return redirect('/categories/{}'.format(category.name))
+    
+    return render_template('edit_category.html', category_name = category_name, user = getUser())
+    
     return category_name
 @app.route('/categories/<string:category_name>/delete')
 def deleteCategory(category_name):
