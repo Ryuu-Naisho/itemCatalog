@@ -187,7 +187,7 @@ def editCategory(category_name):
     return render_template('edit_category.html', category_name = category_name, user = getUser())
     
     return category_name
-@app.route('/categories/<string:category_name>/delete')
+@app.route('/categories/<string:category_name>/delete', methods=['GET','POST'])
 def deleteCategory(category_name):
     ''' Delete Category, user must be owner. '''
     
@@ -195,7 +195,14 @@ def deleteCategory(category_name):
     if 'username' not in login_session:
         return redirect('/login')
     
-    return category_name
+    if request.method == 'POST':
+        category = session.query(Category).filter_by(name = category_name).first()
+        session.delete(category)
+        session.commit()
+        flash('{} has been deleted.'.format(category_name))
+        return redirect('/')
+    
+    return render_template('delete_category.html', category_name = category_name, user = getUser())
 
 @app.route('/categories/new', methods=['GET','POST'])
 def createCategory():

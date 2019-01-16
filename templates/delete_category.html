@@ -1,0 +1,16 @@
+{% with user = user %}
+	{% include 'components/header.html' %}
+{% endwith %}
+	<div class="well">
+		<div class="alert alert-danger">
+		<p><span class="glyphicon glyphicon-warning-sign"></span>
+		Are you sure you want to delete {{category_name}}?</p>
+		</div>
+				<form action="{{url_for('deleteCategory',category_name = category_name)}}" method="POST">
+			<button type="submit" class="btn btn-default">I'm Sure</button>
+			<a href="/">
+				<button type="button" class="btn btn-default">Cancel</button>
+			</a>
+		</form>
+	</div>
+{% include 'components/footer.html' %}
