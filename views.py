@@ -187,6 +187,23 @@ def deleteCategory(category_name):
     
     return category_name
 
+@app.route('/categories/new', methods=['GET','POST'])
+def createCategory():
+    ''' Create a new category. '''
+    
+    ''' Restrict access to users not logged in.'''
+    if 'username' not in login_session:
+        return redirect('/login')
+    
+    if request.method =='POST':
+        category = Category(name = request.form['name'])
+        session.add(category)
+        session.commit()
+        
+        return redirect('/')
+    
+    return render_template('create_category.html', user = getUser())
+
 @app.route('/items/<string:item_name>')
 def getItem(item_name):
     ''' Returns the item template and displays item and description. '''
@@ -268,7 +285,7 @@ def createItem(category_name = None):
     if request.method == 'POST':
         item = Item(name = request.form['name'], description = request.form['description'], category_id = request.form['category_id'], user_id = getUserID(login_session['email']))
         session.add(item)
-        session.commit
+        session.commit()
         
         return redirect('/items/{}'.format(request.form['name']))
     else:
