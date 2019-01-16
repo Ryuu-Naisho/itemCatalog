@@ -1,0 +1,15 @@
+{% with user = user %}
+	{% include 'components/header.html' %}
+{% endwith %}
+<a href="/">
+	<button type="button" class="btn btn-primary">Back</button>
+</a>
+</br> &nbsp;
+<form action="{{url_for('createCategory')}}" method="POST">
+		<div class="form-group">
+			<label>Name:</label>
+			<input name="name" type="text" placeholder="" value="" required/>
+		</div>
+		<button type="Submit" class="btn btn-defalut">Create</button>
+</form>
+{% include 'components/footer.html' %}
