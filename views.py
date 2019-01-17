@@ -328,6 +328,30 @@ def logout():
     if 'gplus_id' in login_session:
         return gdisconnect()
     
+@app.route('/categories/JSON')
+def getCategoriesJSON():
+    ''' Return Categories in JSON format. '''
+    
+    categories = session.query(Category).all()
+    
+    return jsonify( Categories = [category.serialize for category in categories])
+    
+@app.route('/categories/<string:category_name>/JSON')
+def getCategoryJSON(category_name):
+    ''' Return information about a category in JSON format. '''
+    
+    category = session.query(Category).filter_by(name = category_name).first()
+    items = session.query(Item).filter_by(category_id = category.id).all()
+    
+    return jsonify({"Category name" : category.name, "items": [item.serialize for item in items]})
+
+@app.route('/items/JSON')
+def getItemsJSOn():
+    ''' Return items in JSON format. '''
+    
+    items = session.query(Item).all()
+    
+    return jsonify(items = [item.serialize for item in items])
 def getUser():
     ''' Return a user list : username and picture if exists. '''
     
