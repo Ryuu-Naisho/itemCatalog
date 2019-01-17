@@ -82,15 +82,12 @@ class Item(Base):
     @property
     def serialize(self):
         ''' Return data as json object. '''
-        
-        category = session.query(Category).filter_by(id = self.category_id).firt()
-        user = session.query(User).filter_by(id = self.user_id).first()
-        
+              
         return {
             'name' : self.name,
             'description' : self.description,
-            'category' : category.name,
-            'username' : user.username
+            'user id': self.user_id,
+            'category id' : self.category_id
             }
     
 engine = create_engine('sqlite:///itemCatalog.db')
