@@ -1,0 +1,12 @@
+{% with user = user %}
+	{% include 'components/header.html' %}
+{% endwith %}
+<a href="/">
+	<button type="button" class="btn btn-primary">Back</button>
+</a>
+	<div class="well">
+		<div class="alert alert-danger">
+		<p><span class="glyphicon glyphicon-warning-sign"></span>
+		{{message}}</p>
+		</div>
+{% include 'components/footer.html' %}

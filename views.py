@@ -226,7 +226,11 @@ def getItem(item_name):
     ''' Returns the item template and displays item and description. '''
     
     item = session.query(Item).filter_by(name = item_name).first()
-    category = session.query(Category).filter_by(id = item.category_id).first()
+    try:
+        category = session.query(Category).filter_by(id = item.category_id).first()
+    except AttributeError:
+        return render_template('404.html', user = getUser(), message = 'Item {} not found'.format(item_name))
+        
     ''' Redirect traffic for users and non-users '''
     if 'username' in login_session and isOwner(item.user_id):
         return render_template('user_item.html', item = item, category_name = category.name, user = getUser())
