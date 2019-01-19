@@ -34,8 +34,13 @@ def createItems():
     items = ['Soccer ball', 'Fishing pole', 'Paint brush']
     descriptions = ['Ball for playing soccer.', 'Pole for fishing.','Brush for painting.']
     
-    for i in range(1,len(items)):
-        session.add(Item(name = items[i], description = descriptions[i], category_id = i+1, user_id = i+1))
+    for i in range(len(items)):
+        name = items[i]
+        description = descriptions[i]
+        category_id = i +1
+        user_id = i +1
+        print(name + " " + description + " :" + str(category_id) +" : " + str(user_id))
+        session.add(Item(name = name, description = description, category_id = category_id, user_id = user_id))
         session.commit()
 
 if __name__ == '__main__':
