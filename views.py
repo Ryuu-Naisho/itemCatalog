@@ -37,6 +37,74 @@ def login():
     login_session['state'] = state
     return render_template('login.html', client_id = CLIENT_ID,STATE = state)
 
+@app.route('/fbconnect', methods=['POST'])
+def fbconnect():
+    ''' Facebook oAuth. '''
+    
+    ''' Make sure CSRF Token exists. '''
+    if request.args.get('state') != login_session['state']:
+        response = make_response(json.dumps('Invalid state parameter.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    
+    access_token = request.data
+    app_id = json.loads(open('fb_client_secrets.json', 'r').read())[
+        'web']['app_id']
+    app_secret = json.loads(
+        open('fb_client_secrets.json', 'r').read())['web']['app_secret']
+    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id={}&client_secret={}&fb_exchange_token={}'.format(
+        app_id, app_secret, access_token)
+    '''@ TODO FIX access_token not valid '''
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[1]
+    
+    '''Get user info. '''
+    userinfo_url = "https://graph.facebook.com/v2.8/me"
+    token = result.decode().split(',')[0].split(':')[1].replace('"', '')
+    url = 'https://graph.facebook.com/v2.8/me?access_token={}&fields=name,id,email'.format(token)
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[1]
+    data = json.loads(result.decode())
+    if data['error']:
+        return "Couldn't connect to Facebook."
+    login_session['provider'] = 'facebook'
+    login_session['username'] = data['name']
+    login_session['email'] = data['email']
+    login_session['facebook_id'] =  data['id']
+    login_session['access_token'] = token
+    
+    ''' Get user picture. '''
+    url = 'https://graph.facebook.com/v2.8/me/picture?access_token={}&redirect=0&height=200&width=200'.format(token)
+    h = httplib2.Http()
+    result = h.request(url,'GET')[1]
+    data = json.loads(result)
+    login_session['picture'] = data['data']['url']
+    
+    ''' See if user exists. '''
+    user_id = getUserID(login_session['email'])
+    if not user_id:
+        user_id = createUser(login_session)
+    login_session['user_id'] = user_id
+    
+    flash("Welcome {}".format(login_session['username']))
+    return 'Success.'
+
+@app.route('/fbdisconnect')
+def fbdisconnect():
+    facebook_id = login_session['facebook_id']
+    access_token = login_session['access_token']
+    url = 'https://graph.facebook.com/%s/permissions?access_token={}'.format(facebook_id,access_token)
+    h = httplib2.Http()
+    result = h.request(url, 'DELETE')[1]
+    del login_session['provider']
+    del login_session['username']
+    del login_session['email']
+    del login_session['facebook_id']
+    del login_session['access_token']
+    del login_session['picture']
+    return redirect('/')
+    
+    
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     ''' Google auth '''
@@ -331,6 +399,8 @@ def logout():
     
     if 'gplus_id' in login_session:
         return gdisconnect()
+    elif 'facebook_id' in login_session:
+        return fbdisconnect()
     
 @app.route('/categories/JSON')
 def getCategoriesJSON():
