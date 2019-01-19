@@ -302,6 +302,8 @@ def getItem(item_name):
     ''' Redirect traffic for users and non-users '''
     if 'username' in login_session and isOwner(item.user_id):
         return render_template('user_item.html', item = item, category_name = category.name, user = getUser())
+    elif 'username' in login_session and not isOwner(item.user_id):
+        return render_template('item.html', item = item, category_name = category.name, user = getUser())
     else:
         return render_template('item.html', item = item, category_name = category.name, user = False)
 @app.route('/items/<string:item_name>/edit', methods=['GET', 'POST'])
