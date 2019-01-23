@@ -522,7 +522,7 @@ def isOwner(entryUserID):
         loggedInUserID = (session.query(User)
                           .filter_by(email=login_session['email']).first())
 
-        if loggedInUserID is entryUserID:
+        if loggedInUserID.id is entryUserID:
             return True
         else:
             return False
