@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from functools import update_wrapper
 from flask import abort, Flask, flash, g, jsonify, make_response
 from flask import render_template, request, url_for
 from flask import session as login_session
@@ -51,48 +50,38 @@ def fbconnect():
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-
-    access_token = request.data
+    
+    access_token = request.data.decode('utf-8')
     app_id = json.loads(open('fb_client_secrets.json', 'r').read())[
         'web']['app_id']
     app_secret = json.loads(
         open('fb_client_secrets.json', 'r').read())['web']['app_secret']
-    url = ('https://graph.facebook.com/oauth/access_token?grant_type='
-           'fb_exchange_token&client_id={}&client_secret={}&fb_exchange_token='
-           '{}'.format(app_id, app_secret, access_token))
-    '''@ TODO FIX access_token not valid '''
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
 
     '''Get user info. '''
-    userinfo_url = "https://graph.facebook.com/v2.8/me"
-    token = result.decode().split(',')[0].split(':')[1].replace('"', '')
     url = ('https://graph.facebook.com/v2.8/me?access_token={}&fields=name,id,'
-           'email'.format(token))
+           'email'.format(access_token))
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
     data = json.loads(result.decode())
-    if data['error']:
-        return "Couldn't connect to Facebook."
+    
     login_session['provider'] = 'facebook'
     login_session['username'] = data['name']
     login_session['email'] = data['email']
     login_session['facebook_id'] = data['id']
-    login_session['access_token'] = token
+    login_session['access_token'] = access_token
 
     ''' Get user picture. '''
     url = ('https://graph.facebook.com/v2.8/me/picture?access_token={}&'
-           'redirect=0&height=200&width=200'.format(token))
+           'redirect=0&height=200&width=200'.format(access_token))
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
-    data = json.loads(result)
+    data = json.loads(result.decode('utf-8'))
     login_session['picture'] = data['data']['url']
 
     ''' See if user exists. '''
-    user_id = getUserID(login_session['email'])
-    if not user_id:
-        user_id = createUser(login_session)
-    login_session['user_id'] = user_id
+    if not userExists(login_session['email']):
+        createUser(login_session['username'], login_session['email'],
+                   login_session['picture'], login_session['access_token'])
 
     flash("Welcome {}".format(login_session['username']))
     return 'Success.'
